@@ -8,7 +8,7 @@ public final class DietMatrix {
     private static final Map<Species, Map<Species, Integer>> M = new EnumMap<>(Species.class);
 
     static {
-        // Удобный конструктор карт
+
         M.put(Species.WOLF, map(
                 p(Species.HORSE,10), p(Species.DEER,15), p(Species.RABBIT,60), p(Species.MOUSE,80),
                 p(Species.GOAT,60), p(Species.SHEEP,70), p(Species.BOAR,15), p(Species.BUFFALO,10),
@@ -29,6 +29,7 @@ public final class DietMatrix {
                 p(Species.FOX,10), p(Species.RABBIT,90), p(Species.MOUSE,90), p(Species.DUCK,80)
         ));
 
+
         M.put(Species.DUCK, map(
                 p(Species.CATERPILLAR,90)
         ));
@@ -36,11 +37,12 @@ public final class DietMatrix {
     }
 
     public static int chance(Species eater, Species victim) {
-        Map<Species, Integer> sub = M.get(eater);
+        Map<Species,Integer> sub = M.get(eater);
         if (sub == null) return 0;
         return sub.getOrDefault(victim, 0);
     }
 
+    @SafeVarargs
     private static Map<Species,Integer> map(Map.Entry<Species,Integer>... pairs) {
         Map<Species,Integer> m = new EnumMap<>(Species.class);
         for (var e : pairs) m.put(e.getKey(), e.getValue());

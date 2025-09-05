@@ -25,6 +25,7 @@ public class IslandApp extends Application {
     private Canvas canvas;
     private Timeline timeline;
     private Label stats;
+    private Label detailedStats;
 
     @Override
     public void start(Stage stage) {
@@ -39,12 +40,13 @@ public class IslandApp extends Application {
         Button btnPause = new Button("⏸ Пауза");
         Button btnStep = new Button("⏭ Шаг");
         stats = new Label("—");
+        detailedStats = new Label("");
 
         btnPlay.setOnAction(e -> timeline.play());
         btnPause.setOnAction(e -> timeline.pause());
         btnStep.setOnAction(e -> { island.simulateTurn(); draw(); });
 
-        HBox bar = new HBox(10, btnPlay, btnPause, btnStep, stats);
+        HBox bar = new HBox(10, btnPlay, btnPause, btnStep, stats, detailedStats);
         bar.setPadding(new Insets(8));
         root.setTop(bar);
 
@@ -98,6 +100,15 @@ public class IslandApp extends Application {
             }
         }
         stats.setText("Животных: " + island.totalAnimals() + "  Растений: " + island.totalPlants());
+
+        var counts = island.countBySpecies();
+        StringBuilder sb = new StringBuilder();
+        for (var e : counts.entrySet()) {
+            if (e.getValue() > 0) {
+                sb.append(e.getKey().name()).append(": ").append(e.getValue()).append("  ");
+            }
+        }
+        detailedStats.setText(sb.toString());
     }
 
     @Override

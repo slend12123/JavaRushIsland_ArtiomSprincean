@@ -4,6 +4,9 @@ import island.config.Config;
 import island.entities.Plant;
 import island.entities.animals.Animal;
 
+import island.config.Species;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -46,6 +49,21 @@ public class Island {
                 }
             }
         }
+    }
+
+    public Map<Species, Integer> countBySpecies() {
+        Map<Species, Integer> counts = new EnumMap<>(Species.class);
+        for (Species s : Species.values()) {
+            counts.put(s, 0);
+        }
+        for (int y=0; y<height; y++) {
+            for (int x=0; x<width; x++) {
+                for (var a : grid[y][x].animals()) {
+                    counts.put(a.getSpecies(), counts.get(a.getSpecies()) + 1);
+                }
+            }
+        }
+        return counts;
     }
 
     private void randomPopulate() {

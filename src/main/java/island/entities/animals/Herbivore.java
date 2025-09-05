@@ -1,67 +1,64 @@
 package island.entities.animals;
 
-import island.config.DietMatrix;
 import island.config.Species;
-import island.entities.Plant;
-import island.world.AnimalFactory;
-
-import java.util.Iterator;
+import java.util.Optional;
 
 public abstract class Herbivore extends Animal {
-    protected Herbivore(Species species) { super(species); }
+    protected Herbivore(Species species) {
+        super(species);
+    }
 
     @Override
     public void eat() {
-        if (cell == null || !alive) return;
+        if (cell == null || !isAlive()) return;
 
-        // 1) травоядные едят растения
-        cell.lock();
-        try {
-            Iterator<Plant> pit = cell.plants().iterator();
-            while (pit.hasNext() && foodEaten < foodNeed) {
-                pit.next();
-                pit.remove();
-                foodEaten += 1.0; // одно растение ~ 1 кг
-            }
-        } finally {
-            cell.unlock();
+        boolean ate = false;
+
+        // 1. сначала пробуем растения
+        if (!cell.plants().isEmpty()) {
+            cell.plants().remove(0);
+            foodEaten += foodNeed;
+            ate = true;
         }
 
-        // 2) Особый случай: утка ест гусеницу
-        if (species == Species.DUCK && foodEaten < foodNeed) {
-            cell.lock();
-            try {
-                var it = cell.animals().iterator();
-                while (it.hasNext() && foodEaten < foodNeed) {
-                    Animal a = it.next();
-                    if (a.isAlive() && a.species == Species.CATERPILLAR) {
-                        int chance = DietMatrix.chance(Species.DUCK, Species.CATERPILLAR);
-                        if (tryChance(chance)) {
-                            it.remove();
-                            a.alive = false;
-                            foodEaten += a.weight;
-                        }
-                    }
-                }
-            } finally { cell.unlock(); }
+        // 2. особые случаи: утка и кабан могут есть животных
+        if (!ate) {
+            if (species == Species.DUCK) {
+                Optional<Animal> worm = cell.animals().stream()
+                        .filter(a -> a.getSpecies() == Species.CATERPILLAR && a.isAlive())
+                        .findAny();
+                worm.ifPresent(animal -> {
+                    animal.die();
+                    foodEaten += foodNeed;
+                });
+            }
+            if (species == Species.BOAR) {
+                Optional<Animal> mouse = cell.animals().stream()
+                        .filter(a -> a.getSpecies() == Species.MOUSE && a.isAlive())
+                        .findAny();
+                mouse.ifPresent(animal -> {
+                    animal.die();
+                    foodEaten += foodNeed;
+                });
+            }
         }
     }
 
     @Override
     public void move() {
-        if (cell == null || !alive || speed == 0) return;
-        var dst = cell.getRandomReachable(speed, this);
-        if (dst == cell) return;
-        cell.transferAnimalTo(this, dst);
+        if (cell == null || !isAlive()) return;
+        cell.moveAnimalRandom(this, speed);
     }
 
     @Override
     public void reproduce() {
-        if (cell == null || !alive) return;
-        int same = cell.countSpecies(species);
-        if (same >= 2 && same < maxPerCell) {
-            Animal child = AnimalFactory.newAnimal(species);
-            cell.addAnimal(child);
+        if (cell == null || !isAlive()) return;
+        long same = cell.animals().stream()
+                .filter(a -> a.getSpecies() == this.species && a.isAlive())
+                .count();
+        if (same >= 2 && tryChance(15)) {
+            Animal baby = newInstance();
+            cell.addAnimal(baby);
         }
     }
 }

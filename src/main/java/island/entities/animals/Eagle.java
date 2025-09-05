@@ -5,4 +5,10 @@ public class Eagle extends Predator {
     public Eagle(){
         super(Species.EAGLE);
     }
+
+
+    @Override
+    public Animal newInstance() {
+        return new Eagle();
+    }
 }

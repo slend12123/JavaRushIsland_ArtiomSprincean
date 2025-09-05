@@ -33,6 +33,7 @@ public abstract class Animal {
     public abstract void eat();
     public abstract void move();
     public abstract void reproduce();
+    public abstract Animal newInstance();
 
     protected boolean tryChance(int percent) {
         if (percent <= 0) return false;
@@ -49,6 +50,6 @@ public abstract class Animal {
         if (foodEaten < 0.1 * foodNeed) {
             die();
         }
-        foodEaten = 0.0; // голод растёт каждый тик заново
+        foodEaten = 0.0;
     }
 }

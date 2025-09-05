@@ -1,13 +1,10 @@
 package island.world;
 
-import island.config.Config;
-import island.config.Species;
-import island.config.SpeciesStats;
 import island.entities.Plant;
 import island.entities.animals.Animal;
 
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -16,81 +13,105 @@ public class Cell {
     private final ZoneType zone;
     private final Island island;
 
+    private final List<Animal> animals = new ArrayList<>();
+    private final List<Plant> plants = new ArrayList<>();
     private final ReentrantLock lock = new ReentrantLock();
 
-    private final CopyOnWriteArrayList<Animal> animals = new CopyOnWriteArrayList<>();
-    private final CopyOnWriteArrayList<Plant> plants  = new CopyOnWriteArrayList<>();
-
     public Cell(int x, int y, ZoneType zone, Island island) {
-        this.x = x; this.y = y; this.zone = zone; this.island = island;
+        this.x = x;
+        this.y = y;
+        this.zone = zone;
+        this.island = island;
     }
 
-    public ZoneType getZone() { return zone; }
-    public int getX(){ return x; }
-    public int getY(){ return y; }
-
-    public List<Animal> animals(){ return animals; }
-    public List<Plant> plants(){ return plants; }
-
-    public void lock(){ lock.lock(); }
-    public void unlock(){ lock.unlock(); }
-
     public void addAnimal(Animal a) {
-        lock();
+        lock.lock();
         try {
-            long same = animals.stream().filter(an -> an.getSpecies()==a.getSpecies()).count();
-            if (same < SpeciesStats.of(a.getSpecies()).maxPerCell) {
-                animals.add(a);
-                a.setCell(this);
-            }
-        } finally { unlock(); }
+            animals.add(a);
+            a.setCell(this);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void removeAnimal(Animal a) {
-        animals.remove(a);
+        lock.lock();
+        try {
+            animals.remove(a);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void addPlant(Plant p) {
-        lock();
+        lock.lock();
         try {
-            if (plants.size() < Config.PLANT_MAX_PER_CELL) plants.add(p);
-        } finally { unlock(); }
-    }
-
-    public int countSpecies(Species s) {
-        int c = 0;
-        for (var a: animals) if (a.getSpecies()==s && a.isAlive()) c++;
-        return c;
-    }
-
-    public Cell getRandomReachable(int speed, Animal who) {
-        if (speed <= 0) return this;
-        int dx = ThreadLocalRandom.current().nextInt(-speed, speed+1);
-        int dy = ThreadLocalRandom.current().nextInt(-speed, speed+1);
-        int nx = Math.max(0, Math.min(island.getWidth()-1, x + dx));
-        int ny = Math.max(0, Math.min(island.getHeight()-1, y + dy));
-        return island.getGrid()[ny][nx];
-    }
-
-    public void transferAnimalTo(Animal a, Cell dst) {
-        if (dst == this) return;
-        Cell first = this.hashCode() < dst.hashCode() ? this : dst;
-        Cell second = this.hashCode() < dst.hashCode() ? dst : this;
-
-        first.lock(); second.lock();
-        try {
-            if (!animals.remove(a)) return;
-            long same = dst.animals.stream().filter(an -> an.getSpecies()==a.getSpecies()).count();
-            if (same < SpeciesStats.of(a.getSpecies()).maxPerCell) {
-                dst.animals.add(a);
-                a.setCell(dst);
-            } else {
-                // вернуть обратно, если в целевой переполнено
-                animals.add(a);
-                a.setCell(this);
-            }
+            plants.add(p);
         } finally {
-            second.unlock(); first.unlock();
+            lock.unlock();
+        }
+    }
+
+    public void removePlant(Plant p) {
+        lock.lock();
+        try {
+            plants.remove(p);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public List<Animal> animals() {
+        lock.lock();
+        try {
+            return new ArrayList<>(animals);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public List<Plant> plants() {
+        lock.lock();
+        try {
+            return new ArrayList<>(plants);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public ZoneType getZone() {
+        return zone;
+    }
+
+    public int getX() { return x; }
+    public int getY() { return y; }
+
+    public void lock() { lock.lock(); }
+    public void unlock() { lock.unlock(); }
+
+
+    public void moveAnimalRandom(Animal a, int speed) {
+        if (speed <= 0) return;
+
+        int nx = x + ThreadLocalRandom.current().nextInt(-speed, speed + 1);
+        int ny = y + ThreadLocalRandom.current().nextInt(-speed, speed + 1);
+
+        if (nx < 0 || ny < 0 || nx >= island.getWidth() || ny >= island.getHeight()) return;
+
+        Cell target = island.getGrid()[ny][nx];
+        if (target == this) return;
+
+        this.removeAnimal(a);
+        target.addAnimal(a);
+    }
+
+
+    public int countAnimalsOfSpecies(island.config.Species species) {
+        lock.lock();
+        try {
+            return (int) animals.stream().filter(an -> an.getSpecies() == species).count();
+        } finally {
+            lock.unlock();
         }
     }
 }

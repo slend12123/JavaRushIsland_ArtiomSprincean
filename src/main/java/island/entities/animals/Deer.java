@@ -5,4 +5,9 @@ public class Deer extends Herbivore {
     public Deer(){
         super(Species.DEER);
     }
+
+    @Override
+    public Herbivore newInstance() {
+        return new Deer();
+    }
 }
