@@ -21,7 +21,7 @@ public class Island {
             Executors.newFixedThreadPool(Config.ANIMAL_POOL_SIZE);
     private final Random random = new Random();
 
-    // размер "куска" зоны (биома)
+
     private static final int ZONE_SIZE = 6;
 
     public Island(int width, int height) {
@@ -34,9 +34,7 @@ public class Island {
         scheduleBackgroundTasks();
     }
 
-    /**
-     * Генерация зон блоками
-     */
+
     private void generateZones() {
         for (int y = 0; y < height; y += ZONE_SIZE) {
             for (int x = 0; x < width; x += ZONE_SIZE) {
@@ -67,12 +65,12 @@ public class Island {
     }
 
     private void randomPopulate() {
-        // растения
+
         for (int i = 0; i < Config.INITIAL_PLANTS; i++) {
             int x = random.nextInt(width), y = random.nextInt(height);
             grid[y][x].addPlant(new Plant());
         }
-        // животные: случайное число особей в каждой клетке
+
         for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
             int n = random.nextInt(Config.INITIAL_ANIMALS_MAX_PER_CELL - Config.INITIAL_ANIMALS_MIN_PER_CELL + 1)
                     + Config.INITIAL_ANIMALS_MIN_PER_CELL;
@@ -84,15 +82,12 @@ public class Island {
     }
 
     private void scheduleBackgroundTasks() {
-        // рост растений
         scheduler.scheduleAtFixedRate(this::growPlants, 500, 500, TimeUnit.MILLISECONDS);
-        // вывод статистики (в консоль)
         scheduler.scheduleAtFixedRate(this::printStats, 1, 1, TimeUnit.SECONDS);
     }
 
     private void growPlants() {
         for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
-            // шанс поменьше, чтобы растения не плодились так быстро
             if (Math.random() < Config.PLANT_GROW_CHANCE_PER_TICK * 0.3) {
                 grid[y][x].addPlant(new Plant());
             }

@@ -2,9 +2,6 @@
 package island.entities.animals;
 
 import island.config.Species;
-import island.world.Cell;
-
-import java.util.List;
 
 public class Wolf extends Predator {
 

@@ -8,12 +8,12 @@ public final class Config {
     public static final int HEIGHT = 50;
 
 
-    public static final int TICK_MILLIS = 500; // длительность тика в UI
+    public static final int TICK_MILLIS = 500;
 
 
     public static final int INITIAL_PLANTS = 800;
     public static final int INITIAL_ANIMALS_MIN_PER_CELL = 0;
-    public static final int INITIAL_ANIMALS_MAX_PER_CELL = 3; // случайно 0..3 особи рандомных видов
+    public static final int INITIAL_ANIMALS_MAX_PER_CELL = 3;
 
 
     public static final int PLANT_MAX_PER_CELL = 200;

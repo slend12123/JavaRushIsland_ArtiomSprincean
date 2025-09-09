@@ -45,7 +45,7 @@ public abstract class Animal {
         if (cell != null) cell.removeAnimal(this);
     }
 
-    /** Голод: умирает, если в конце тика не наелся хотя бы на 10% нужды 2 тика подряд (упрощённо: 1 тик) */
+
     public void endOfTickUpdate() {
         if (foodEaten < 0.1 * foodNeed) {
             die();

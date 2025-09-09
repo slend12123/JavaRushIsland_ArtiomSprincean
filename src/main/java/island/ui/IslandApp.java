@@ -73,7 +73,7 @@ public class IslandApp extends Application {
         for (int y=0; y<grid.length; y++) {
             for (int x=0; x<grid[0].length; x++) {
                 var c = grid[y][x];
-                // фон по зоне
+
                 Color bg = switch (c.getZone()) {
                     case FOREST -> Color.DARKGREEN;
                     case FIELD -> Color.LIGHTGREEN;
@@ -83,12 +83,12 @@ public class IslandApp extends Application {
                 g.setFill(bg);
                 g.fillRect(x*cellSize, y*cellSize, cellSize, cellSize);
 
-                // растения
+
                 if (!c.plants().isEmpty()) {
                     g.setFill(Color.GREENYELLOW);
                     g.fillRect(x*cellSize+3, y*cellSize+3, 3,3);
                 }
-                // животные
+
                 int n = c.animals().size();
                 if (n>0) {
                     g.setFill(Color.RED);
